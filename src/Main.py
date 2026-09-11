@@ -96,8 +96,7 @@ def avaliacao():
             estado_anterior = estado
 
             acao = agente.escolher_acao()
-            # print(agente.estado)
-            # print(acao)
+
 
             novo_estado, recompensa, fim = ambiente.step(acao)
             agente.estado = novo_estado
@@ -111,9 +110,14 @@ def avaliacao():
 
     print(success)
 
-epsilon = 0.1
-for x in range(5):
-    epsilon -= (x*0.01) if epsilon > 0 else 0
-    treino(epsilon)
 
-avaliacao()
+obstaculo = ambiente.setObstaculos((3, 7), (5, 8))
+print(obstaculo)
+
+
+# epsilon = 0.1
+# for x in range(5):
+#     epsilon -= (x*0.01) if epsilon > 0 else 0
+#     treino(epsilon)
+
+# avaliacao()

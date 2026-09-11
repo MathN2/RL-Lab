@@ -15,6 +15,8 @@ class Ambiente:
             'right'
         ]
 
+        obstaculos = []
+
     def reset(self):
         self.posicao = {'x': 0, 'y': 0}
         return (self.posicao['x'], self.posicao['y'])
@@ -63,4 +65,20 @@ class Ambiente:
 
     def isFinished(self):
         return self.posicao == self.objetivo
+
+    def setObstaculos(self, p_inicial: tuple, p_final: tuple):
+        obstaculo = []
+        
+        x_min = min(p_inicial[0], p_final[0])
+        x_max = max(p_inicial[0], p_final[0])
+
+        y_min = min(p_inicial[1], p_final[1])
+        y_max = max(p_inicial[1], p_final[1])
+        
+        for x in range(x_min, x_max + 1):
+            for y in range(y_min, y_max + 1):
+                obstaculo.append((x, y))
+
+        return obstaculo
+
 
