@@ -1,6 +1,7 @@
-from Agente import Agente
-from Ambiente import Ambiente
-from Excel import *
+from model.Agente import Agente
+from model.Ambiente import Ambiente
+from model.estrutura.Obstaculo import *
+from data.Excel import *
 
 # import plotly.express as px
 
@@ -10,7 +11,7 @@ agente = Agente(ambiente.qtd_x, ambiente.qtd_y, ambiente.acoes)
 num_chamada = 0
 
 limite_passos = ambiente.objetivo['x'] + ambiente.objetivo['y'] + 3
-janela_verificacao = 100
+janela_verificacao = 20
 
 lista_sucessos = []
 lista_quick = []
@@ -22,6 +23,7 @@ historico_avaliacao = []
 def treino(epsilon = 0.1):
     global num_chamada
     num_chamada += 1
+    historico_passos = []
 
     planilha, sheet = criar_sheet(f"Execução {num_chamada}")
     agente.epsilon = epsilon
@@ -38,25 +40,39 @@ def treino(epsilon = 0.1):
     while percentual_rapidos < 98:
         estado = ambiente.reset()
         agente.reset()
+        passos = ""
 
+        # Looping EPISODIOS
         while not ambiente.isFinished():
             estado_anterior = estado
 
             acao = agente.escolher_acao()
+
+            if acao == "up":
+                passo = "↑" 
+            elif acao == "down":
+                passo = "↓" 
+            elif acao == "right":
+                passo = "→" 
+            elif acao == "left":
+                passo = "←" 
 
             novo_estado, recompensa, fim = ambiente.step(acao)
             agente.QUpdate(estado_anterior, acao, recompensa, novo_estado)
             agente.estado = novo_estado
 
             estado = novo_estado
+            passos += f"Episodio: {eps_percorridos} | Posição: {estado_anterior} | Ação: {passo} | Nova Posição: {novo_estado}\n" #type:ignore
 
+        historico_passos.append(passos)
+        
+        
 
         if ambiente.isFinished():
             sucessos += 1
             if agente.passos <= limite_passos:
                 quick_sucessos += 1
 
-    
         historico_completo.append(agente.passos)
 
         if eps_percorridos % janela_verificacao == 0 and eps_percorridos != 0:
@@ -68,7 +84,7 @@ def treino(epsilon = 0.1):
 
             sucessos = quick_sucessos = 0
             num_ciclo += 1
-
+            
             historico_fatiado.append(historico_completo[-100:])
 
             media = sum(historico_fatiado[-1]) / janela_verificacao
@@ -83,6 +99,8 @@ def treino(epsilon = 0.1):
             print(num_ciclo)
         
         eps_percorridos += 1
+    salvar_passos(historico_passos)
+    # print(eps_percorridos)
 
 
 def avaliacao():
@@ -111,13 +129,16 @@ def avaliacao():
     print(success)
 
 
-obstaculo = ambiente.setObstaculos((3, 7), (5, 8))
-print(obstaculo)
+obstaculo = Obstaculo("Parede", (3, 4), (5, 4))
+ambiente.criar_obstaculo(obstaculo)
+
+print(ambiente.obstaculos[0].posicao)
+# print(obstaculo)
 
 
-# epsilon = 0.1
-# for x in range(5):
-#     epsilon -= (x*0.01) if epsilon > 0 else 0
-#     treino(epsilon)
+epsilon = 0.1
+for x in range(1):
+    epsilon -= (x*0.01) if epsilon > 0 else 0
+    treino(epsilon)
 
 # avaliacao()
