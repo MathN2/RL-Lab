@@ -24,6 +24,7 @@ def treino(epsilon = 0.1):
     global num_chamada
     num_chamada += 1
     historico_passos = []
+    qtable_list = []
 
     planilha, sheet = criar_sheet(f"Execução {num_chamada}")
     agente.epsilon = epsilon
@@ -41,6 +42,8 @@ def treino(epsilon = 0.1):
         estado = ambiente.reset()
         agente.reset()
         passos = ""
+        qtable = ""
+        contador = 0
 
         # Looping EPISODIOS
         while not ambiente.isFinished():
@@ -58,16 +61,20 @@ def treino(epsilon = 0.1):
                 passo = "←" 
 
             novo_estado, recompensa, fim = ambiente.step(acao)
+            print(recompensa)
             agente.QUpdate(estado_anterior, acao, recompensa, novo_estado)
             agente.estado = novo_estado
 
             estado = novo_estado
-            passos += f"Episodio: {eps_percorridos} | Posição: {estado_anterior} | Ação: {passo} | Nova Posição: {novo_estado}\n" #type:ignore
+
+            passos += f"{contador}: Episodio: {eps_percorridos} | Posição: {estado_anterior} | Ação: {passo} | Nova Posição: {novo_estado}\n" #type:ignore
+            qtable += f"{contador}: Episodio: {eps_percorridos} | Estado: {agente.estado} - {agente.QTable[agente.estado]}\n"
+            contador += 1
 
         historico_passos.append(passos)
+        qtable_list.append(qtable)
+        qtable_list.append("-"*110+"\n")
         
-        
-
         if ambiente.isFinished():
             sucessos += 1
             if agente.passos <= limite_passos:
@@ -99,6 +106,8 @@ def treino(epsilon = 0.1):
             print(num_ciclo)
         
         eps_percorridos += 1
+
+    salvar_qtable(qtable_list)
     salvar_passos(historico_passos)
     # print(eps_percorridos)
 

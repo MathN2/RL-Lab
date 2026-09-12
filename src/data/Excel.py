@@ -26,3 +26,7 @@ def salvar(planilha, sheet, ciclo, media, mediana, minimo, maximo, rapidos):
 def salvar_passos(dados):
     with open("src/data/passos.txt", "w", encoding="utf-8") as arquivo:
         arquivo.write("".join(dados))
+
+def salvar_qtable(dados):
+    with open("src/data/qtable.txt", "w", encoding="utf-8") as arquivo:
+        arquivo.write("".join(dados))
