@@ -61,7 +61,6 @@ def treino(epsilon = 0.1):
                 passo = "←" 
 
             novo_estado, recompensa, fim = ambiente.step(acao)
-            print(recompensa)
             agente.QUpdate(estado_anterior, acao, recompensa, novo_estado)
             agente.estado = novo_estado
 
@@ -103,13 +102,11 @@ def treino(epsilon = 0.1):
 
         if num_ciclo > 100:
             agente.epsilon -= 0.01
-            print(num_ciclo)
         
         eps_percorridos += 1
 
     salvar_qtable(qtable_list)
     salvar_passos(historico_passos)
-    # print(eps_percorridos)
 
 
 def avaliacao():
@@ -138,16 +135,19 @@ def avaliacao():
     print(success)
 
 
-obstaculo = Obstaculo("Parede", (3, 4), (5, 4))
+obstaculo = Obstaculo("Parede", (4, 0), (4, 6))
+ambiente.criar_obstaculo(obstaculo)
+obstaculo = Obstaculo("Parede", (4, 6), (6, 6))
+ambiente.criar_obstaculo(obstaculo)
+obstaculo = Obstaculo("Parede", (6, 6), (6, 1))
 ambiente.criar_obstaculo(obstaculo)
 
-print(ambiente.obstaculos[0].posicao)
-# print(obstaculo)
 
+# epsilon = 0.1
+# for x in range(1):
+#     epsilon -= (x*0.01) if epsilon > 0 else 0
+#     treino(epsilon)
 
-epsilon = 0.1
-for x in range(1):
-    epsilon -= (x*0.01) if epsilon > 0 else 0
-    treino(epsilon)
+print(ambiente.bfs_calc())
 
 # avaliacao()

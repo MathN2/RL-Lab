@@ -14,9 +14,10 @@ class Ambiente:
         self.qtd_y = 6
 
         self.limite_inferior = (0, 0)
-        self.limite_superior = (5, 5)
+        self.limite_superior = (10, 10)
 
-        self.posicao = {'x': 0, 'y': 0}
+        self.posicao_inicial = {'x': 0, 'y': 0}
+        self.posicao = self.posicao_inicial
         self.objetivo = {'x': 5, 'y': 5}
         self.qtd_posicoes = self.qtd_x * self.qtd_y
 
@@ -38,7 +39,7 @@ class Ambiente:
         self.posicao['y'] = posicao[1]
 
     def reset(self):
-        self.posicao = {'x': 0, 'y': 0}
+        self.posicao = self.posicao_inicial
         return (self.posicao['x'], self.posicao['y'])
 
     def step(self, acao):
@@ -79,7 +80,6 @@ class Ambiente:
             recompensa = 10
 
         resultado= self.verificar_interacao()
-        # print(resultado)
         if resultado is not None:
             posicao_atual = (posicao_anterior['x'], posicao_anterior['y']) if resultado.nova_posicao == False else (self.posicao['x'], self.posicao['y'])
             self.posicao['x'] = posicao_atual[0]
@@ -119,3 +119,91 @@ class Ambiente:
                 resultado: ResultadoInteracao = obstaculo.interagir()
                 return resultado
         return None
+
+    def bfs_calc(self):
+        atual = (self.posicao_inicial['x'], self.posicao_inicial['y'])
+        acoes = self.acoes
+
+        fila = [atual]
+        visitados = set()
+        distancias = {atual: 0}
+        obstaculos = set()
+
+        for obstaculo in self.obstaculos:
+            obstaculos.add(obstaculo)
+
+        visitados.add(atual)
+
+        while fila:
+            atual = fila.pop(0)
+            print(atual)
+
+            if atual == (self.objetivo['x'], self.objetivo['y']):
+                return distancias[atual]
+
+            for acao in acoes:
+                if acao.lower() == "up":
+                    if not atual[1] == self.limite_superior[1]:
+                        vizinho = (atual[0], atual[1] + 1)
+
+                        bloquado = False
+
+                        for obstaculo in obstaculos:
+                            if vizinho in obstaculo.posicao:
+                                bloquado = True
+                                break
+
+                        if not bloquado and vizinho not in visitados:
+                            visitados.add(vizinho)
+                            fila.append(vizinho)
+                            distancias[vizinho] = distancias[atual] + 1
+
+                elif acao.lower() == "down":
+                    if not atual[1] == self.limite_inferior[1]:
+                        vizinho = (atual[0], atual[1] - 1)
+
+                        bloquado = False
+
+                        for obstaculo in obstaculos:
+                            if vizinho in obstaculo.posicao:
+                                bloquado = True
+                                break
+
+                        if not bloquado and vizinho not in visitados:
+                            visitados.add(vizinho)
+                            fila.append(vizinho)
+                            distancias[vizinho] = distancias[atual] + 1
+
+                elif acao.lower() == "right":
+                    if not atual[0] == self.limite_superior[0]:
+                        vizinho = (atual[0] + 1, atual[1])
+
+                        bloquado = False
+
+                        for obstaculo in obstaculos:
+                            if vizinho in obstaculo.posicao:
+                                bloquado = True
+                                break
+
+                        if not bloquado and vizinho not in visitados:
+                            visitados.add(vizinho)
+                            fila.append(vizinho)
+                            distancias[vizinho] = distancias[atual] + 1
+
+                elif acao.lower() == "left":
+                    if not atual[0] == self.limite_inferior[0]:
+                        vizinho = (atual[0] - 1, atual[1])
+
+                        bloquado = False
+
+                        for obstaculo in obstaculos:
+                            if vizinho in obstaculo.posicao:
+                                bloquado = True
+                                break
+
+                        if not bloquado and vizinho not in visitados:
+                            visitados.add(vizinho)
+                            fila.append(vizinho)
+                            distancias[vizinho] = distancias[atual] + 1
+
+        return None    
