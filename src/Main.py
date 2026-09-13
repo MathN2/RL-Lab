@@ -1,9 +1,13 @@
+# Package
 from model.Agente import Agente
 from model.Ambiente import Ambiente
 from model.estrutura.Obstaculo import *
 from data.Excel import *
 
+# Libraries
+from statistics import median
 # import plotly.express as px
+
 
 # -- Configuração --------------------------------------------------
 ambiente = Ambiente()
@@ -99,10 +103,11 @@ def treino(epsilon = 0.1):
             finalizar = False
 
         if valor_salvar is not None:
-            media = sum(historico_fatiado[-1]) / len(historico_fatiado[-1])
-            mediana = historico_fatiado[-1][int(len(historico_fatiado[-1]) / 2)]
-            menor = min(historico_fatiado[-1])
-            maior = max(historico_fatiado[-1])
+            historico_atual = historico_fatiado[-1]
+            media = sum(historico_atual) / len(historico_atual)
+            mediana = median(historico_atual)
+            menor = min(historico_atual)
+            maior = max(historico_atual)
 
             salvar(planilha, sheet, valor_salvar, media, mediana, menor, maior, eficiencia)
 
