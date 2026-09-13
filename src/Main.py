@@ -5,40 +5,44 @@ from data.Excel import *
 
 # import plotly.express as px
 
+# -- Configuração --------------------------------------------------
 ambiente = Ambiente()
 agente = Agente(ambiente.qtd_x, ambiente.qtd_y, ambiente.acoes)
 
+obstaculo = Obstaculo("Parede", (4, 0), (4, 6))
+ambiente.criar_obstaculo(obstaculo)
+obstaculo = Obstaculo("Parede", (4, 6), (6, 6))
+ambiente.criar_obstaculo(obstaculo)
+obstaculo = Obstaculo("Parede", (6, 6), (6, 1))
+ambiente.criar_obstaculo(obstaculo)
+#-----------------------------------------------------------------
+
 num_chamada = 0
-
-limite_passos = ambiente.objetivo['x'] + ambiente.objetivo['y'] + 3
 janela_verificacao = 20
-
-lista_sucessos = []
-lista_quick = []
-
-historico_completo = []
-historico_fatiado = []
-historico_avaliacao = []
+limite_episodios = 10000
 
 def treino(epsilon = 0.1):
     global num_chamada
     num_chamada += 1
+    num_ciclo = 0
+    eps_percorridos = 1
+
+    agente.epsilon = epsilon
+    planilha, sheet = criar_sheet(f"Execução {num_chamada}")
+
+    minimo_passos = ambiente.bfs_calc()
+    if minimo_passos is None:
+        return None
+
+    historico_completo = []
+    historico_fatiado = []
     historico_passos = []
     qtable_list = []
 
-    planilha, sheet = criar_sheet(f"Execução {num_chamada}")
-    agente.epsilon = epsilon
+    eficiencia = 0
+    eficiencia_minima = 95
 
-    sucessos = 0
-    quick_sucessos = 0
-
-    percentual_sucessos = 0
-    percentual_rapidos = 0
-
-    eps_percorridos = 1
-    num_ciclo = 0
-
-    while percentual_rapidos < 98:
+    while True:
         estado = ambiente.reset()
         agente.reset()
         passos = ""
@@ -70,40 +74,46 @@ def treino(epsilon = 0.1):
             qtable += f"{contador}: Episodio: {eps_percorridos} | Estado: {agente.estado} - {agente.QTable[agente.estado]}\n"
             contador += 1
 
-        historico_passos.append(passos)
         qtable_list.append(qtable)
         qtable_list.append("-"*110+"\n")
         
-        if ambiente.isFinished():
-            sucessos += 1
-            if agente.passos <= limite_passos:
-                quick_sucessos += 1
-
+        historico_passos.append(passos)
         historico_completo.append(agente.passos)
+        
+        eficiencia = (minimo_passos / agente.passos) * 100
 
-        if eps_percorridos % janela_verificacao == 0 and eps_percorridos != 0:
-            lista_sucessos.append(sucessos)
-            lista_quick.append(quick_sucessos)
+        if eficiencia >= eficiencia_minima:
+            historico_fatiado.append(historico_completo[num_ciclo * janela_verificacao:])
+            valor_salvar = num_ciclo + 0.5
+            finalizar = True
 
-            percentual_sucessos = sucessos / janela_verificacao * 100
-            percentual_rapidos = quick_sucessos / janela_verificacao * 100
-
-            sucessos = quick_sucessos = 0
+        elif eps_percorridos % janela_verificacao == 0 and eps_percorridos != 0:
             num_ciclo += 1
             
-            historico_fatiado.append(historico_completo[-100:])
+            historico_fatiado.append(historico_completo[-janela_verificacao:])
+            valor_salvar = num_ciclo
+            finalizar = False
 
-            media = sum(historico_fatiado[-1]) / janela_verificacao
+        else:
+            valor_salvar = None
+            finalizar = False
+
+        if valor_salvar is not None:
+            media = sum(historico_fatiado[-1]) / len(historico_fatiado[-1])
             mediana = historico_fatiado[-1][int(len(historico_fatiado[-1]) / 2)]
-            minimo = min(historico_fatiado[-1])
-            maximo = max(historico_fatiado[-1])
+            menor = min(historico_fatiado[-1])
+            maior = max(historico_fatiado[-1])
 
-            salvar(planilha, sheet, num_ciclo, media, mediana, minimo, maximo, percentual_rapidos)
+            salvar(planilha, sheet, valor_salvar, media, mediana, menor, maior, eficiencia)
+
 
         if num_ciclo > 100:
             agente.epsilon -= 0.01
         
         eps_percorridos += 1
+
+        if finalizar or eps_percorridos > limite_episodios:
+            break
 
     salvar_qtable(qtable_list)
     salvar_passos(historico_passos)
@@ -112,6 +122,8 @@ def treino(epsilon = 0.1):
 def avaliacao():
     agente.setEpsilon(0)
     success = 0
+
+    historico_avaliacao = []
 
     for x in range(100):
         estado = ambiente.reset()
@@ -135,19 +147,9 @@ def avaliacao():
     print(success)
 
 
-obstaculo = Obstaculo("Parede", (4, 0), (4, 6))
-ambiente.criar_obstaculo(obstaculo)
-obstaculo = Obstaculo("Parede", (4, 6), (6, 6))
-ambiente.criar_obstaculo(obstaculo)
-obstaculo = Obstaculo("Parede", (6, 6), (6, 1))
-ambiente.criar_obstaculo(obstaculo)
-
-
-# epsilon = 0.1
-# for x in range(1):
-#     epsilon -= (x*0.01) if epsilon > 0 else 0
-#     treino(epsilon)
-
-print(ambiente.bfs_calc())
+epsilon = 0.1
+for x in range(5):
+    epsilon -= (x*0.01) if epsilon > 0 else 0
+    treino(epsilon)
 
 # avaliacao()

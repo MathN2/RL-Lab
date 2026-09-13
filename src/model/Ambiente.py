@@ -12,14 +12,14 @@ class Ambiente:
         ):
             raise ValueError
 
-        self.qtd_x = 6
-        self.qtd_y = 6
+        self.qtd_x = 11
+        self.qtd_y = 11
 
         self.limite_inferior = (0, 0)
         self.limite_superior = (10, 10)
 
         self.posicao_inicial = {'x': 0, 'y': 0}
-        self.posicao = self.posicao_inicial
+        self.posicao = self.posicao_inicial.copy()
         self.objetivo = {'x': 5, 'y': 5}
         self.qtd_posicoes = self.qtd_x * self.qtd_y
 
@@ -41,7 +41,8 @@ class Ambiente:
         self.posicao['y'] = posicao[1]
 
     def reset(self):
-        self.posicao = self.posicao_inicial
+        self.posicao = self.posicao_inicial.copy()
+        # print(self.posicao_inicial)
         return (self.posicao['x'], self.posicao['y'])
 
     def isFinished(self):
@@ -63,17 +64,17 @@ class Ambiente:
         self.posicao['y'] = max(0, min(self.posicao['y'], self.limite_superior[1]))
 
 
-        if self.posicao['x'] > self.limite_superior[0]:
-            self.posicao['x'] = self.limite_superior[0]
+        # if self.posicao['x'] > self.limite_superior[0]:
+        #     self.posicao['x'] = self.limite_superior[0]
 
-        if self.posicao['x'] < 0:
-            self.posicao['x'] = 0
+        # if self.posicao['x'] < 0:
+        #     self.posicao['x'] = 0
             
-        if self.posicao['y'] > self.limite_superior[1]:
-            self.posicao['y'] = self.limite_superior[1]
+        # if self.posicao['y'] > self.limite_superior[1]:
+        #     self.posicao['y'] = self.limite_superior[1]
 
-        if self.posicao['y'] < 0:
-            self.posicao['y'] = 0
+        # if self.posicao['y'] < 0:
+        #     self.posicao['y'] = 0
 
 
         if self.posicao == posicao_anterior:
@@ -86,7 +87,7 @@ class Ambiente:
 
         resultado= self.verificar_interacao()
         if resultado is not None:
-            posicao_atual = (posicao_anterior['x'], posicao_anterior['y']) if resultado.nova_posicao == False else (self.posicao['x'], self.posicao['y'])
+            posicao_atual = (posicao_anterior['x'], posicao_anterior['y']) if resultado.nova_posicao == False else self.get_posicao_tupla()
             self.posicao['x'] = posicao_atual[0]
             self.posicao['y'] = posicao_atual[1]
 
@@ -94,7 +95,7 @@ class Ambiente:
             finalizado = resultado.finalizado
             
         else:
-            posicao_atual = (self.posicao['x'], self.posicao['y'])
+            posicao_atual = self.get_posicao_tupla()
             finalizado = self.isFinished()
 
         return posicao_atual, recompensa, finalizado
