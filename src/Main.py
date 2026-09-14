@@ -60,17 +60,9 @@ def treinar(epsilon = 0.1):
 
         # Looping EPISODIOS
         while not ambiente.isFinished():
-            estado_anterior = estado
+            estado_anterior, estado, acao, fim = preparar_step(estado, agente, True)
 
-            acao = agente.escolher_acao()
-
-            novo_estado, recompensa, fim = ambiente.step(acao)
-            agente.QUpdate(estado_anterior, acao, recompensa, novo_estado)
-            agente.estado = novo_estado
-
-            estado = novo_estado
-
-            passos += f"{str(contador).center(5)}: Episodio: {num_ep} | Posição: {estado_anterior} | Ação: {acoes[acao]} | Nova Posição: {str(novo_estado).center(8)}\n"
+            passos += f"{str(contador).center(5)}: Episodio: {num_ep} | Posição: {str(estado_anterior).center(10)} | Ação: {acoes[acao]} | Nova Posição: {str(estado).center(8)}\n"
             qtable += f"{str(contador).center(5)}: Episodio: {num_ep} | Estado: {str(agente.estado).center(5)} - {str(agente.QTable[agente.estado]).center(120)}\n"
             contador += 1
 
@@ -129,14 +121,10 @@ def avaliar(minimo_passos):
 
         while not ambiente.isFinished() and cont < limite:
             cont += 1
-            estado_anterior = estado
+            estado_anterior, estado, acao, fim = preparar_step(estado, agente)
 
-            acao = agente.escolher_acao()
-
-            novo_estado, recompensa, fim = ambiente.step(acao)
-            agente.estado = novo_estado
-
-            estado = novo_estado
+            if fim:
+                break
 
         if ambiente.isFinished():
             eficiencia = (minimo_passos / agente.passos) * 100
@@ -160,6 +148,21 @@ def avaliar(minimo_passos):
         return False
 
 
+def preparar_step(estado, agente, atualizar_qtable=False):
+    estado_anterior = estado
+    
+    acao = agente.escolher_acao()
+
+    novo_estado, recompensa, fim = ambiente.step(acao)
+    estado = novo_estado
+    agente.estado = novo_estado
+
+    if atualizar_qtable:
+            agente.QUpdate(estado_anterior, acao, recompensa, novo_estado)
+
+    return estado_anterior, novo_estado, acao, fim
+
+
 def salvar_estatisticas(planilha, sheet, ciclo_id, historico, eficiencia):
     media = sum(historico) / len(historico)
     mediana = median(historico)
@@ -167,7 +170,7 @@ def salvar_estatisticas(planilha, sheet, ciclo_id, historico, eficiencia):
     maior = max(historico)
 
     salvar_resultados(planilha, sheet, ciclo_id, media, mediana, menor, maior, eficiencia)
-    
+
 
 epsilon = 0.1
 for x in range(1):

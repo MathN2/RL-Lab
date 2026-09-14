@@ -42,7 +42,6 @@ class Ambiente:
 
     def reset(self):
         self.posicao = self.posicao_inicial.copy()
-
         return (self.posicao['x'], self.posicao['y'])
 
     def isFinished(self):
