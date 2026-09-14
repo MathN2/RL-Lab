@@ -18,7 +18,7 @@ def criar_sheet(sheet_name):
 
     return planilha, aba
 
-def salvar(planilha, sheet, ciclo, media, mediana, menor, maior, rapidos):
+def salvar_resultados(planilha, sheet, ciclo, media, mediana, menor, maior, rapidos):
     sheet.append([ciclo, media, mediana, menor, maior, rapidos])
 
     planilha.save("src/data/resultados.xlsx")

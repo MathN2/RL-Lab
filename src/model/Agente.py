@@ -14,9 +14,9 @@ class Agente:
         self.estado: tuple[int, int] = (0, 0)
         self.QTable = {}
 
-        self.SetQTable()
+        self.set_QTable()
 
-    def SetQTable(self):
+    def set_QTable(self):
         for x in range(self.x):
             for y in range(self.y):
                 self.QTable[(x, y)] = {}
@@ -32,6 +32,10 @@ class Agente:
     def reset(self):
         self.passos = 0
         self.estado = (0, 0)
+
+    def hard_reset(self):
+        self.reset()
+        self.set_QTable()
 
     def escolher_acao(self):
         if random.random() < self.epsilon:

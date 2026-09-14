@@ -42,7 +42,7 @@ class Ambiente:
 
     def reset(self):
         self.posicao = self.posicao_inicial.copy()
-        # print(self.posicao_inicial)
+
         return (self.posicao['x'], self.posicao['y'])
 
     def isFinished(self):
@@ -62,20 +62,6 @@ class Ambiente:
 
         self.posicao['x'] = max(0, min(self.posicao['x'], self.limite_superior[0]))
         self.posicao['y'] = max(0, min(self.posicao['y'], self.limite_superior[1]))
-
-
-        # if self.posicao['x'] > self.limite_superior[0]:
-        #     self.posicao['x'] = self.limite_superior[0]
-
-        # if self.posicao['x'] < 0:
-        #     self.posicao['x'] = 0
-            
-        # if self.posicao['y'] > self.limite_superior[1]:
-        #     self.posicao['y'] = self.limite_superior[1]
-
-        # if self.posicao['y'] < 0:
-        #     self.posicao['y'] = 0
-
 
         if self.posicao == posicao_anterior:
             recompensa = -2
