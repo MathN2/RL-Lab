@@ -19,14 +19,22 @@ obstaculo = Obstaculo("Parede", (4, 6), (6, 6))
 ambiente.criar_obstaculo(obstaculo)
 obstaculo = Obstaculo("Parede", (6, 6), (6, 1))
 ambiente.criar_obstaculo(obstaculo)
-#-----------------------------------------------------------------
+#------------------------------------------------------------------
 
 num_chamada = 0
 janela_verificacao = 10
 limite_episodios = 10000
 
+acoes = {   # acoes é um recurso temporario para logs
+        'up': "↑",
+        'down': "↓",
+        'left': "←",
+        'right': "→",
+    }
+
+
 def treinar(epsilon = 0.1):
-    global num_chamada
+    global num_chamada, num_ep
     num_chamada += 1
     num_ciclo = 0
     num_ep = 1
@@ -44,30 +52,12 @@ def treinar(epsilon = 0.1):
 
     eficiencia = 0
 
-    acoes = {
-        'up': "↑",
-        'down': "↓",
-        'left': "←",
-        'right': "→",
-            }
-
     while True:
         estado = ambiente.reset()
         agente.reset()
-        passos = ""
-        qtable = ""
-        contador = 1
 
         # Looping EPISODIOS
-        while not ambiente.isFinished():
-            estado_anterior, estado, acao, fim = preparar_step(estado, agente, True)
-
-            passos += f"{str(contador).center(5)}: Episodio: {num_ep} | Posição: {str(estado_anterior).center(10)} | Ação: {acoes[acao]} | Nova Posição: {str(estado).center(8)}\n"
-            qtable += f"{str(contador).center(5)}: Episodio: {num_ep} | Estado: {str(agente.estado).center(5)} - {str(agente.QTable[agente.estado]).center(120)}\n"
-            contador += 1
-
-            if fim:
-                break
+        passos, qtable = executar_episodio(ambiente, agente, estado, True)
 
         qtable_list.append(qtable)
         qtable_list.append("-"*170+"\n")
@@ -119,12 +109,7 @@ def avaliar(minimo_passos):
         estado = ambiente.reset()
         agente.reset()
 
-        while not ambiente.isFinished() and cont < limite:
-            cont += 1
-            estado_anterior, estado, acao, fim = preparar_step(estado, agente)
-
-            if fim:
-                break
+        executar_episodio(ambiente, agente, estado, True)
 
         if ambiente.isFinished():
             eficiencia = (minimo_passos / agente.passos) * 100
@@ -146,6 +131,35 @@ def avaliar(minimo_passos):
         return True
     else:
         return False
+
+
+def executar_episodio(ambiente:Ambiente, agente:Agente, estado, treinar=False):  
+    global acoes
+    contador = 1
+    passos = ""
+    qtable = ""
+
+    while not ambiente.isFinished():
+        estado_anterior = estado
+            
+        acao = agente.escolher_acao()
+    
+        novo_estado, recompensa, fim = ambiente.step(acao)
+        estado = novo_estado
+        agente.estado = novo_estado
+    
+        if treinar:
+            agente.QUpdate(estado_anterior, acao, recompensa, novo_estado)
+
+        # Logs
+        passos += f"{str(contador).center(5)}: Episodio: {num_ep} | Posição: {str(estado_anterior).center(10)} | Ação: {acoes[acao]} | Nova Posição: {str(estado).center(8)}\n"
+        qtable += f"{str(contador).center(5)}: Episodio: {num_ep} | Estado: {str(agente.estado).center(5)} - {str(agente.QTable[agente.estado]).center(120)}\n"
+        contador += 1
+
+        if fim:
+            break
+
+    return passos, qtable
 
 
 def preparar_step(estado, agente, atualizar_qtable=False):

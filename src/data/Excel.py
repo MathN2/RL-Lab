@@ -21,12 +21,12 @@ def criar_sheet(sheet_name):
 def salvar_resultados(planilha, sheet, ciclo, media, mediana, menor, maior, rapidos):
     sheet.append([ciclo, media, mediana, menor, maior, rapidos])
 
-    planilha.save("src/data/resultados.xlsx")
+    planilha.save("data/resultados.xlsx")
 
 def salvar_passos(dados):
-    with open("src/data/passos.txt", "w", encoding="utf-8") as arquivo:
+    with open("data/passos.txt", "w", encoding="utf-8") as arquivo:
         arquivo.write("".join(dados))
 
 def salvar_qtable(dados):
-    with open("src/data/qtable.txt", "w", encoding="utf-8") as arquivo:
+    with open("data/qtable.txt", "w", encoding="utf-8") as arquivo:
         arquivo.write("".join(dados))
