@@ -2,7 +2,7 @@
 from model.Agente import Agente
 from model.Ambiente import Ambiente
 from model.estrutura.Obstaculo import Obstaculo
-from data.Excel import salvar_resultados, salvar_passos, salvar_qtable, criar_sheet
+from data.Excel import criar_sheet, salvar_resultados, salvar_passos, salvar_qtable, salvar_execucao
 
 # Libraries
 from statistics import median
@@ -38,6 +38,8 @@ def treinar(epsilon = 0.1):
     num_chamada += 1
     num_ciclo = 0
     num_ep = 1
+    num_total_completos = 0
+    num_completos = 0
 
     agente.epsilon = epsilon
     planilha, sheet = criar_sheet(f"Execução {num_chamada}")
@@ -47,7 +49,9 @@ def treinar(epsilon = 0.1):
         return None
 
     historico_completo = []
+    historico_eficiencia = []
     historico_passos = []
+    historico_convergencia = []
     qtable_list = []
 
     eficiencia = 0
@@ -57,7 +61,13 @@ def treinar(epsilon = 0.1):
         agente.reset()
 
         # Looping EPISODIOS
-        passos, qtable = executar_episodio(ambiente, agente, estado, True)
+        passos, qtable, completo = executar_episodio(ambiente, agente, estado, True)
+
+        if completo:
+            num_completos += 1
+            eficiencia = (minimo_passos / agente.passos) * 100
+        else:
+            eficiencia = 0
 
         qtable_list.append(qtable)
         qtable_list.append("-"*170+"\n")
@@ -65,9 +75,10 @@ def treinar(epsilon = 0.1):
         passos += "-"*100+"\n"
         historico_passos.append(passos)
         historico_completo.append(agente.passos)
+        historico_eficiencia.append(eficiencia)
         
-        eficiencia = (minimo_passos / agente.passos) * 100
 
+        # CICLO
         if num_ep % janela_verificacao == 0:
             num_ciclo += 1
 
@@ -75,23 +86,28 @@ def treinar(epsilon = 0.1):
                 agente.epsilon = max(0, agente.epsilon - 0.01)
             
             historico_atual = historico_completo[-janela_verificacao:]
+            eficiencia_ciclo = historico_eficiencia[-janela_verificacao:]
             ciclo_id = num_ciclo
 
-            finalizar = avaliar(minimo_passos)
+            historico_convergencia.append(avaliar(minimo_passos))
 
         else:
             ciclo_id = None
             historico_atual = None
-            finalizar = False
 
         if ciclo_id is not None:
-            salvar_estatisticas(planilha, sheet, ciclo_id, historico_atual, eficiencia)
+            salvar_estatisticas(planilha, sheet, ciclo_id, historico_atual, eficiencia_ciclo, num_completos)
+            num_total_completos += num_completos
+            num_completos = 0
 
         num_ep += 1
 
-        if finalizar:
-            break
+        if len(historico_convergencia) >= 5:
+            if all(historico_convergencia[-5:]):
+                break
 
+    # CRIAR SALVAR TOTAL
+    prep_salvar_execucao(epsilon, num_ep, num_ciclo, num_total_completos, historico_eficiencia, historico_completo)
     salvar_qtable(qtable_list)
     salvar_passos(historico_passos)
 
@@ -136,8 +152,10 @@ def avaliar(minimo_passos):
 def executar_episodio(ambiente:Ambiente, agente:Agente, estado, treinar=False):  
     global acoes
     contador = 1
+    completo = True
     passos = ""
     qtable = ""
+    
 
     while not ambiente.isFinished():
         estado_anterior = estado
@@ -157,33 +175,29 @@ def executar_episodio(ambiente:Ambiente, agente:Agente, estado, treinar=False):
         contador += 1
 
         if fim:
+            completo = False
             break
 
-    return passos, qtable
+    return passos, qtable, completo
 
 
-def preparar_step(estado, agente, atualizar_qtable=False):
-    estado_anterior = estado
-    
-    acao = agente.escolher_acao()
+def prep_salvar_execucao(epsilon, episodios, ciclos, completados, historico_eficiencia, historico_completo):
+    eficiencia_media = sum(historico_eficiencia) / len(historico_eficiencia)
+    taxa_completos = (completados / episodios) * 100
+    passos_media = sum(historico_completo) / len(historico_completo)
 
-    novo_estado, recompensa, fim = ambiente.step(acao)
-    estado = novo_estado
-    agente.estado = novo_estado
+    # epsilon_inicial, episodios, ciclos, completados, taxa_comp, eficiencia, passos, resultado
+    salvar_execucao(str(epsilon), episodios, ciclos, completados, taxa_completos, eficiencia_media, passos_media)
 
-    if atualizar_qtable:
-            agente.QUpdate(estado_anterior, acao, recompensa, novo_estado)
-
-    return estado_anterior, novo_estado, acao, fim
-
-
-def salvar_estatisticas(planilha, sheet, ciclo_id, historico, eficiencia):
+def salvar_estatisticas(planilha, sheet, ciclo_id, historico, eficiencia_ciclo, num_completos):
+    eficiencia_media = sum(eficiencia_ciclo) / len(eficiencia_ciclo)
     media = sum(historico) / len(historico)
     mediana = median(historico)
     menor = min(historico)
     maior = max(historico)
+    percentual_completos = (num_completos / janela_verificacao) * 100
 
-    salvar_resultados(planilha, sheet, ciclo_id, media, mediana, menor, maior, eficiencia)
+    salvar_resultados(planilha, sheet, ciclo_id, media, mediana, menor, maior, eficiencia_media, percentual_completos)
 
 
 epsilon = 0.1

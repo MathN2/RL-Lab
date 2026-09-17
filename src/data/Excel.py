@@ -1,4 +1,5 @@
-from openpyxl import Workbook
+from openpyxl import Workbook, load_workbook
+from pathlib import Path
 
 planilha = Workbook()
 sheet_original = planilha.active
@@ -13,13 +14,46 @@ def criar_sheet(sheet_name):
         "Mediana",
         "Menor",
         "Maior",
-        "Eficiencia"
+        "Eficiencia",
+        "Completos"
     ])
 
     return planilha, aba
 
-def salvar_resultados(planilha, sheet, ciclo, media, mediana, menor, maior, rapidos):
-    sheet.append([ciclo, media, mediana, menor, maior, rapidos])
+
+def salvar_execucao(epsilon_inicial, episodios, ciclos, completados, taxa_comp, eficiencia, passos):
+    path = Path("data/execucoes.xlsx")
+
+    if path.exists():
+        planilha = load_workbook(path)
+    else:
+        planilha = Workbook()
+
+    sheet = planilha.active
+    sheet.append([
+        "ε inicial",
+        "episodios",
+        "ciclos",
+        "completados",
+        "taxa de conclusão",
+        "eficiencia media",
+        "passos médios"
+    ])
+
+    sheet.append([
+        epsilon_inicial,
+        episodios,
+        ciclos,
+        completados,
+        taxa_comp,
+        eficiencia,
+        passos
+    ])
+    planilha.save(path)
+
+
+def salvar_resultados(planilha, sheet, ciclo, media, mediana, menor, maior, eficiencia, completos):
+    sheet.append([ciclo, media, mediana, menor, maior, eficiencia, completos])
 
     planilha.save("data/resultados.xlsx")
 

@@ -81,7 +81,7 @@ class Ambiente:
             
         else:
             posicao_atual = self.get_posicao_tupla()
-            finalizado = self.isFinished()
+            finalizado = False
 
         return posicao_atual, recompensa, finalizado
 
