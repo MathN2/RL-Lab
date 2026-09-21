@@ -202,6 +202,12 @@ def salvar_estatisticas(planilha, sheet, ciclo_id, historico, eficiencia_ciclo, 
     salvar_resultados(planilha, sheet, ciclo_id, media, mediana, menor, maior, eficiencia_media, percentual_completos)
 
 
+# Recomendações:
+# - epsilon: normalmente faz sentido iniciar mais alto e reduzir ao longo das execuções.
+# - alpha: pode ser incrementado ou reduzido dependendo do experimento.
+# - gamma: normalmente deve permanecer entre 0 e 1.
+# - incrementos são percentuais e devem estar entre 0 e 1.
+
 conf = {
     "resetar_Qtable": False,
     "qtd_execucoes": 10,
@@ -229,21 +235,47 @@ conf = {
     "incremento_global": 0.1
 }
 
+def validar_configuracao(conf):
+    for valor in conf("valores").values():
+        if not 0 <= valor["valor"] <= 1:
+            raise ValueError("Alpha, gamma e epsilon devem estar entre 0 e 1.")
+
+        if not -1 <= valor["incremento"] <= 1:
+            raise ValueError("O incremento deve estar entre -1 e 1.")
+
+        if not -1 <= conf["incremento_global"] <= 1:
+            raise ValueError("O incremento global deve estar entre -1 e 1.")
+        
+
+def atualizar_configuracao(conf):
+    for valor in conf["valores"].values():    
+        if valor["incrementar_global"]:
+            incremento = conf["incremento_global"]
+        else:
+            incremento = valor["incremento"]
+
+        novo_valor =  valor["valor"] * (1 + incremento)
+
+        if not 0 <= novo_valor <= 1:
+            raise ValueError("O incremento ultrapassou os limites do parâmetro.")
+        else:
+            valor["valor"] = novo_valor
+
+        valor["valor"] = max(0, (min(1, valor["valor"])))
+
+
 def executar_experimento(conf):
+    validar_configuracao(conf)
+
     for x in range(conf["qtd_execucoes"]):
         alpha = conf["valores"]["alpha"]["valor"]
         gamma = conf["valores"]["gamma"]["valor"]
         epsilon = conf["valores"]["epsilon"]["valor"]
-        incremento = conf["incremento_global"]
 
         treinar(alpha, gamma, epsilon)
 
-        for valor in conf["valores"].values():
-            if valor["incrementar_global"]:
-                valor["valor"] += incremento
-            else:
-                valor["valor"] += valor["incremento"]
-
+        atualizar_configuracao(conf)
+        
         if conf["resetar_Qtable"]:
             agente.hard_reset()
             
