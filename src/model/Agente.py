@@ -24,7 +24,10 @@ class Agente:
                 for acao in self.acoes_possiveis:
                     self.QTable[(x, y)][acao] = 0
 
-
+    def setAlpha(self, alpha):
+        self.alpha = alpha
+    def setGamma(self, gamma):
+        self.gamma = gamma
     def setEpsilon(self, epsilon):
         self.epsilon = epsilon
     

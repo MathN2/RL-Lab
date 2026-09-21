@@ -21,7 +21,7 @@ def criar_sheet(sheet_name):
     return planilha, aba
 
 
-def salvar_execucao(epsilon_inicial, episodios, ciclos, completados, taxa_comp, eficiencia, passos):
+def salvar_execucao(alpha_inicial, gamma_inicial, epsilon_inicial, episodios, ciclos, completados, taxa_comp, eficiencia, passos):
     path = Path("data/execucoes.xlsx")
 
     if path.exists():
@@ -31,6 +31,8 @@ def salvar_execucao(epsilon_inicial, episodios, ciclos, completados, taxa_comp, 
 
     sheet = planilha.active
     sheet.append([
+        "α inicial",
+        "γ inicial",
         "ε inicial",
         "episodios",
         "ciclos",
@@ -41,6 +43,8 @@ def salvar_execucao(epsilon_inicial, episodios, ciclos, completados, taxa_comp, 
     ])
 
     sheet.append([
+        alpha_inicial,
+        gamma_inicial,
         epsilon_inicial,
         episodios,
         ciclos,

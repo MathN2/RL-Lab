@@ -33,7 +33,7 @@ acoes = {   # acoes é um recurso temporario para logs
     }
 
 
-def treinar(epsilon = 0.1):
+def treinar(alpha, gamma, epsilon):
     global num_chamada, num_ep
     num_chamada += 1
     num_ciclo = 0
@@ -41,6 +41,8 @@ def treinar(epsilon = 0.1):
     num_total_completos = 0
     num_completos = 0
 
+    agente.alpha = alpha
+    agente.gamma = gamma
     agente.epsilon = epsilon
     planilha, sheet = criar_sheet(f"Execução {num_chamada}")
 
@@ -107,7 +109,7 @@ def treinar(epsilon = 0.1):
                 break
 
     # CRIAR SALVAR TOTAL
-    prep_salvar_execucao(epsilon, num_ep, num_ciclo, num_total_completos, historico_eficiencia, historico_completo)
+    prep_salvar_execucao(alpha, gamma, epsilon, num_ep, num_ciclo, num_total_completos, historico_eficiencia, historico_completo)
     salvar_qtable(qtable_list)
     salvar_passos(historico_passos)
 
@@ -181,13 +183,13 @@ def executar_episodio(ambiente:Ambiente, agente:Agente, estado, treinar=False):
     return passos, qtable, completo
 
 
-def prep_salvar_execucao(epsilon, episodios, ciclos, completados, historico_eficiencia, historico_completo):
+def prep_salvar_execucao(alpha, gamma, epsilon, episodios, ciclos, completados, historico_eficiencia, historico_completo):
     eficiencia_media = sum(historico_eficiencia) / len(historico_eficiencia)
     taxa_completos = (completados / episodios) * 100
     passos_media = sum(historico_completo) / len(historico_completo)
 
     # epsilon_inicial, episodios, ciclos, completados, taxa_comp, eficiencia, passos, resultado
-    salvar_execucao(str(epsilon), episodios, ciclos, completados, taxa_completos, eficiencia_media, passos_media)
+    salvar_execucao(alpha, gamma, str(epsilon), episodios, ciclos, completados, taxa_completos, eficiencia_media, passos_media)
 
 def salvar_estatisticas(planilha, sheet, ciclo_id, historico, eficiencia_ciclo, num_completos):
     eficiencia_media = sum(eficiencia_ciclo) / len(eficiencia_ciclo)
@@ -200,8 +202,49 @@ def salvar_estatisticas(planilha, sheet, ciclo_id, historico, eficiencia_ciclo, 
     salvar_resultados(planilha, sheet, ciclo_id, media, mediana, menor, maior, eficiencia_media, percentual_completos)
 
 
-epsilon = 0.1
-for x in range(1):
-    agente.hard_reset()
-    epsilon = 0.1 - (x*0.01) if epsilon > 0 else 0
-    treinar(epsilon)
+conf = {
+    "resetar_Qtable": False,
+    "qtd_execucoes": 10,
+
+    "valores": {
+        "alpha": {
+                "valor": 0.1,
+                "incrementar_global": False,
+                "incremento": 0
+        },
+    
+        "gamma": {
+            "valor": 0.9,
+            "incrementar_global": False,
+            "incremento": 0.01
+        },
+    
+        "epsilon": {
+            "valor": 0.1,
+            "incrementar_global": True,
+            "incremento": 0
+        }
+    },
+    
+    "incremento_global": 0.1
+}
+
+def executar_experimento(conf):
+    for x in range(conf["qtd_execucoes"]):
+        alpha = conf["valores"]["alpha"]["valor"]
+        gamma = conf["valores"]["gamma"]["valor"]
+        epsilon = conf["valores"]["epsilon"]["valor"]
+        incremento = conf["incremento_global"]
+
+        treinar(alpha, gamma, epsilon)
+
+        for valor in conf["valores"].values():
+            if valor["incrementar_global"]:
+                valor["valor"] += incremento
+            else:
+                valor["valor"] += valor["incremento"]
+
+        if conf["resetar_Qtable"]:
+            agente.hard_reset()
+            
+executar_experimento(conf)
