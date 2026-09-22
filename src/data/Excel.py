@@ -28,19 +28,20 @@ def salvar_execucao(alpha_inicial, gamma_inicial, epsilon_inicial, episodios, ci
         planilha = load_workbook(path)
     else:
         planilha = Workbook()
+        planilha.active.append([
+            "α inicial",
+            "γ inicial",
+            "ε inicial",
+            "episodios",
+            "ciclos",
+            "completados",
+            "taxa de conclusão",
+            "eficiencia media",
+            "passos médios"
+        ])
 
     sheet = planilha.active
-    sheet.append([
-        "α inicial",
-        "γ inicial",
-        "ε inicial",
-        "episodios",
-        "ciclos",
-        "completados",
-        "taxa de conclusão",
-        "eficiencia media",
-        "passos médios"
-    ])
+    
 
     sheet.append([
         alpha_inicial,

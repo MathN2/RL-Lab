@@ -236,7 +236,7 @@ conf = {
 }
 
 def validar_configuracao(conf):
-    for valor in conf("valores").values():
+    for valor in conf["valores"].values():
         if not 0 <= valor["valor"] <= 1:
             raise ValueError("Alpha, gamma e epsilon devem estar entre 0 e 1.")
 
