@@ -1,5 +1,5 @@
-from model.estrutura.Obstaculo import *
-from model.estrutura.ResultadoInteracao import *
+from model.estrutura.obstaculo import *
+from model.estrutura.resultadoInteracao import *
 
 from collections import deque
 

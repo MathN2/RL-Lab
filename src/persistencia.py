@@ -1,9 +1,15 @@
 from openpyxl import Workbook, load_workbook
 from pathlib import Path
 
+BASE_DIR = Path(__file__).resolve().parent.parent
+DATA_DIR = BASE_DIR / "data"
+
+Path.mkdir(DATA_DIR, exist_ok=True)
+
+
 planilha = Workbook()
 sheet_original = planilha.active
-planilha.remove(sheet_original) # type: ignore
+planilha.remove(sheet_original)
 
 def criar_sheet(sheet_name):
     aba = planilha.create_sheet(sheet_name)
@@ -22,7 +28,7 @@ def criar_sheet(sheet_name):
 
 
 def salvar_execucao(alpha_inicial, gamma_inicial, epsilon_inicial, episodios, ciclos, completados, taxa_comp, eficiencia, passos):
-    path = Path("data/execucoes.xlsx")
+    path = Path(DATA_DIR / "execucoes.xlsx")
 
     if path.exists():
         planilha = load_workbook(path)
@@ -60,12 +66,12 @@ def salvar_execucao(alpha_inicial, gamma_inicial, epsilon_inicial, episodios, ci
 def salvar_resultados(planilha, sheet, ciclo, media, mediana, menor, maior, eficiencia, completos):
     sheet.append([ciclo, media, mediana, menor, maior, eficiencia, completos])
 
-    planilha.save("data/resultados.xlsx")
+    planilha.save(DATA_DIR / "resultados.xlsx")
 
 def salvar_passos(dados):
-    with open("data/passos.txt", "w", encoding="utf-8") as arquivo:
+    with open(DATA_DIR / "passos.txt", "w", encoding="utf-8") as arquivo:
         arquivo.write("".join(dados))
 
 def salvar_qtable(dados):
-    with open("data/qtable.txt", "w", encoding="utf-8") as arquivo:
+    with open(DATA_DIR / "qtable.txt", "w", encoding="utf-8") as arquivo:
         arquivo.write("".join(dados))

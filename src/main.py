@@ -1,8 +1,8 @@
 # Package
-from model.Agente import Agente
-from model.Ambiente import Ambiente
-from model.estrutura.Obstaculo import Obstaculo
-from data.Excel import criar_sheet, salvar_resultados, salvar_passos, salvar_qtable, salvar_execucao
+from model.agente import Agente
+from model.ambiente import Ambiente
+from model.estrutura.obstaculo import Obstaculo
+from persistencia import criar_sheet, salvar_resultados, salvar_passos, salvar_qtable, salvar_execucao
 
 # Libraries
 from statistics import median

@@ -1,4 +1,4 @@
-from model.estrutura.ResultadoInteracao import ResultadoInteracao
+from model.estrutura.resultadoInteracao import ResultadoInteracao
 
 class Obstaculo:
     def __init__(self, tipo, p_inicial, p_final) -> None:
