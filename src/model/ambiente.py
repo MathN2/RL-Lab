@@ -4,19 +4,21 @@ from model.estrutura.resultadoInteracao import *
 from collections import deque
 
 class Ambiente:
-    def __init__(self, limite_inferior=(0, 0), limite_superior=(9,9)):
+    def __init__(self, nome_ambiente, limite_inferior=(0, 0), limite_superior=(9,9)):
         #Validação dos limites
         if (
             limite_superior[0] < limite_inferior[0]
             or limite_superior[1] < limite_inferior[1]
         ):
-            raise ValueError
+            raise ValueError("Incompatibilidade na criação dos limites.")
 
-        self.qtd_x = 11
-        self.qtd_y = 11
+        self.nome_ambiente = nome_ambiente
 
-        self.limite_inferior = (0, 0)
-        self.limite_superior = (10, 10)
+        self.qtd_x = limite_superior[0] - limite_inferior[0]
+        self.qtd_y = limite_superior[1] - limite_inferior[1]
+
+        self.limite_inferior = limite_inferior
+        self.limite_superior = limite_superior
 
         self.posicao_inicial = {'x': 0, 'y': 0}
         self.posicao = self.posicao_inicial.copy()
@@ -44,7 +46,7 @@ class Ambiente:
         self.posicao = self.posicao_inicial.copy()
         return (self.posicao['x'], self.posicao['y'])
 
-    def isFinished(self):
+    def is_finished(self):
         return self.posicao == self.objetivo
 
     def step(self, acao):

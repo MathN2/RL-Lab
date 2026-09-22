@@ -9,18 +9,23 @@ from statistics import median
 # import plotly.express as px
 
 
-# -- Configuração --------------------------------------------------
-ambiente = Ambiente()
-agente = Agente(ambiente.qtd_x, ambiente.qtd_y, ambiente.acoes)
+# -- Configuração l1 --------------------------------------------------
+level1 = Ambiente()
+agente = Agente()
+# level1.qtd_x, level1.qtd_y, level1.acoes
 
 obstaculo = Obstaculo("Parede", (4, 0), (4, 6))
-ambiente.criar_obstaculo(obstaculo)
+level1.criar_obstaculo(obstaculo)
 obstaculo = Obstaculo("Parede", (4, 6), (6, 6))
-ambiente.criar_obstaculo(obstaculo)
+level1.criar_obstaculo(obstaculo)
 obstaculo = Obstaculo("Parede", (6, 6), (6, 1))
-ambiente.criar_obstaculo(obstaculo)
-#------------------------------------------------------------------
+level1.criar_obstaculo(obstaculo)
+#----------------------------------------------------------------------
 
+# -- Configuração l2 --------------------------------------------------
+level2 = Ambiente((0, 0), (20, 15))
+
+# -- Treinamento.py ---------------------------------------------------
 num_chamada = 0
 janela_verificacao = 10
 limite_episodios = 10000
@@ -37,16 +42,16 @@ def treinar(alpha, gamma, epsilon):
     global num_chamada, num_ep
     num_chamada += 1
     num_ciclo = 0
-    num_ep = 1
+    num_ep = 0
     num_total_completos = 0
     num_completos = 0
 
-    agente.alpha = alpha
-    agente.gamma = gamma
-    agente.epsilon = epsilon
+    agente.set_alpha = alpha
+    agente.set_gamma = gamma
+    agente.set_epsilon = epsilon
     planilha, sheet = criar_sheet(f"Execução {num_chamada}")
 
-    minimo_passos = ambiente.bfs_calc()
+    minimo_passos = level1.bfs_calc()
     if minimo_passos is None:
         return None
 
@@ -59,11 +64,11 @@ def treinar(alpha, gamma, epsilon):
     eficiencia = 0
 
     while True:
-        estado = ambiente.reset()
+        estado = level1.reset()
         agente.reset()
 
         # Looping EPISODIOS
-        passos, qtable, completo = executar_episodio(ambiente, agente, estado, True)
+        passos, qtable, completo = executar_episodio(level1, agente, estado, True)
 
         if completo:
             num_completos += 1
@@ -115,21 +120,19 @@ def treinar(alpha, gamma, epsilon):
 
 
 def avaliar(minimo_passos):
-    agente.setEpsilon(0)
+    agente.set_epsilon(0)
     success = 0
-    limite = minimo_passos * 10
 
     historico_avaliacao = []
     historico_eficiencia = []
 
     for x in range(100):
-        cont = 0
-        estado = ambiente.reset()
+        estado = level1.reset()
         agente.reset()
 
-        executar_episodio(ambiente, agente, estado, True)
+        executar_episodio(level1, agente, estado, True)
 
-        if ambiente.isFinished():
+        if level1.is_finished():
             eficiencia = (minimo_passos / agente.passos) * 100
             finalizou = True
         else:
@@ -151,7 +154,7 @@ def avaliar(minimo_passos):
         return False
 
 
-def executar_episodio(ambiente:Ambiente, agente:Agente, estado, treinar=False):  
+def executar_episodio(level1:Ambiente, agente:Agente, estado, treinar=False):  
     global acoes
     contador = 1
     completo = True
@@ -159,12 +162,12 @@ def executar_episodio(ambiente:Ambiente, agente:Agente, estado, treinar=False):
     qtable = ""
     
 
-    while not ambiente.isFinished():
+    while not level1.is_finished():
         estado_anterior = estado
             
         acao = agente.escolher_acao()
     
-        novo_estado, recompensa, fim = ambiente.step(acao)
+        novo_estado, recompensa, fim = level1.step(acao)
         estado = novo_estado
         agente.estado = novo_estado
     
