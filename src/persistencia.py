@@ -7,14 +7,17 @@ DATA_DIR = BASE_DIR / "data"
 Path.mkdir(DATA_DIR, exist_ok=True)
 
 
-planilha = Workbook()
-sheet_original = planilha.active
-planilha.remove(sheet_original)
+def criar_planilha():
+    planilha = Workbook()
+    sheet_original = planilha.active
+    planilha.remove(sheet_original)
 
-def criar_sheet(sheet_name):
-    aba = planilha.create_sheet(sheet_name)
+    return planilha
 
-    aba.append([
+def criar_sheet(planilha, sheet_name):
+    sheet = planilha.create_sheet(sheet_name)
+
+    sheet.append([
         "Ciclo",
         "Média",
         "Mediana",
@@ -24,49 +27,33 @@ def criar_sheet(sheet_name):
         "Completos"
     ])
 
-    return planilha, aba
+    return sheet
 
 
-def salvar_execucao(alpha_inicial, gamma_inicial, epsilon_inicial, episodios, ciclos, completados, taxa_comp, eficiencia, passos):
+def salvar_planilha(nome_file, planilha):
+    path = DATA_DIR / "resultados"
+    Path.mkdir(path, exist_ok=True)
+    planilha.save(path / nome_file)
+
+
+def add_info_sheet(sheet, info:dict):
+    sheet.append(list(info.values()))
+
+
+def salvar_execucao(info_execucao:dict):
     path = Path(DATA_DIR / "execucoes.xlsx")
 
     if path.exists():
         planilha = load_workbook(path)
     else:
         planilha = Workbook()
-        planilha.active.append([
-            "α inicial",
-            "γ inicial",
-            "ε inicial",
-            "episodios",
-            "ciclos",
-            "completados",
-            "taxa de conclusão",
-            "eficiencia media",
-            "passos médios"
-        ])
+        planilha.active.append(list(info_execucao.keys()))
 
     sheet = planilha.active
     
-
-    sheet.append([
-        alpha_inicial,
-        gamma_inicial,
-        epsilon_inicial,
-        episodios,
-        ciclos,
-        completados,
-        taxa_comp,
-        eficiencia,
-        passos
-    ])
+    sheet.append(list(info_execucao.values()))
     planilha.save(path)
 
-
-def salvar_resultados(planilha, sheet, ciclo, media, mediana, menor, maior, eficiencia, completos):
-    sheet.append([ciclo, media, mediana, menor, maior, eficiencia, completos])
-
-    planilha.save(DATA_DIR / "resultados.xlsx")
 
 def salvar_passos(dados):
     with open(DATA_DIR / "passos.txt", "w", encoding="utf-8") as arquivo:

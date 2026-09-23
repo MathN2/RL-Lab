@@ -2,40 +2,40 @@ import random
 
 class Agente:
     def __init__(self, alpha=0.1, gamma=0.9, epsilon=0.1):
-        self.estado_atual
+        self.estado_atual = None
+        self.ambiente_atual = None
         self.acoes_possiveis = []
 
-        self.alpha = 0.1
-        self.gamma = 0.9
-        self.epsilon = 0.1
+        self.alpha = alpha
+        self.gamma = gamma
+        self.epsilon = epsilon
         self.QTable = {}
 
         self.passos = 0
-
-        self.set_qtable()
 
 
     # -- TIPOS DE RESET -----------------------------
     def reset(self):
         self.passos = 0
-        self.estado = self.posicao_inicial.copy()
+        self.estado_atual = self.ambiente_atual.reset()
+        self.set_qtable(self.estado_atual)
 
     def hard_reset(self):
         self.reset()
-        self.set_qtable()
+        self.QTable = {}
 
 
     # -- CONFIGURAÇOES QTABLE --------------------------
-    def set_qtable(self):
-        for x in range(self.qtd_x):
-            for y in range(self.qtd_y):
-                self.QTable[(x, y)] = {}
-            
-                for acao in self.acoes_possiveis:
-                    self.QTable[(x, y)][acao] = 0
+    def set_qtable(self, novo_estado):
+        if not novo_estado in self.QTable:
+            self.QTable[novo_estado] = {}
+
+            for acao in self.acoes_possiveis:
+                self.QTable[novo_estado][acao] = 0
 
 
     def QUpdate(self, estado, acao, recompensa, novo_estado):
+        self.set_qtable(novo_estado)
         valor_atual = self.QTable[estado][acao]
 
         melhor_futuro = max(self.QTable[novo_estado].values())
@@ -54,12 +54,14 @@ class Agente:
 
 
     # -- CONFIGURAÇOES AMBIENTE -----------------------
-    def configurar_ambiente(self, ambiente):
-        pass
+    def entrar_ambiente(self, ambiente):
+        self.ambiente_atual = ambiente
+        self.configurar_acoes()
+        self.reset()
     
     # -- CONFIGURAÇOES DE AÇOES -----------------------
-    def configurar_acoes(self, novas_acoes):
-        self.acoes_possiveis = novas_acoes
+    def configurar_acoes(self):
+        self.acoes_possiveis = self.ambiente_atual.acoes
 
     def add_acao(self, acao):
         if not acao in self.acoes_possiveis:
@@ -86,11 +88,8 @@ class Agente:
     
 
     def acao_greedy(self):
-        valor = max(self.QTable[self.estado].values())
-        keys = [k for k, v in self.QTable[self.estado].items() if v == valor]
+        valor = max(self.QTable[self.estado_atual].values())
+        keys = [k for k, v in self.QTable[self.estado_atual].items() if v == valor]
 
         return random.choice(keys)
-
-
-    
     

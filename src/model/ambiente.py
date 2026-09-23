@@ -14,8 +14,8 @@ class Ambiente:
 
         self.nome_ambiente = nome_ambiente
 
-        self.qtd_x = limite_superior[0] - limite_inferior[0]
-        self.qtd_y = limite_superior[1] - limite_inferior[1]
+        self.qtd_x = limite_superior[0] - limite_inferior[0] + 1
+        self.qtd_y = limite_superior[1] - limite_inferior[1] + 1
 
         self.limite_inferior = limite_inferior
         self.limite_superior = limite_superior
@@ -34,6 +34,13 @@ class Ambiente:
 
         self.obstaculos = []
 
+    def get_nome(self): return self.nome_ambiente
+
+    def get_posicao_inicial(self):
+        x = self.posicao_inicial['x']
+        y = self.posicao_inicial['y']
+        return (x, y)
+
     def get_posicao_tupla(self):
         posicao = (self.posicao['x'], self.posicao['y'])
         return posicao
@@ -44,7 +51,8 @@ class Ambiente:
 
     def reset(self):
         self.posicao = self.posicao_inicial.copy()
-        return (self.posicao['x'], self.posicao['y'])
+        coordenada = (self.posicao['x'], self.posicao['y'])
+        return (self.nome_ambiente, coordenada)
 
     def is_finished(self):
         return self.posicao == self.objetivo
@@ -61,8 +69,8 @@ class Ambiente:
         elif acao == 'left':
             self.posicao['x'] -= 1
 
-        self.posicao['x'] = max(0, min(self.posicao['x'], self.limite_superior[0]))
-        self.posicao['y'] = max(0, min(self.posicao['y'], self.limite_superior[1]))
+        self.posicao['x'] = max(self.limite_inferior[0], min(self.posicao['x'], self.limite_superior[0]))
+        self.posicao['y'] = max(self.limite_inferior[1], min(self.posicao['y'], self.limite_superior[1]))
 
         if self.posicao == posicao_anterior:
             recompensa = -2
@@ -80,12 +88,16 @@ class Ambiente:
 
             recompensa = resultado.recompensa
             finalizado = resultado.finalizado
+            completado = resultado.completado
             
         else:
             posicao_atual = self.get_posicao_tupla()
             finalizado = False
+            completado = False
 
-        return posicao_atual, recompensa, finalizado
+        estado_atual = (self.nome_ambiente, posicao_atual)
+
+        return estado_atual, recompensa, finalizado, completado
 
 
     def criar_obstaculo(self, obstaculo:Obstaculo):

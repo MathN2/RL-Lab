@@ -24,11 +24,13 @@ class Obstaculo:
     def interagir(self):
         nova_posicao = False
         recompensa = None
+        finalizado = None
+        completado = None
         if self.tipo.lower() == "parede":
             nova_posicao = False
             recompensa = -10
 
 
-        resultado = ResultadoInteracao(nova_posicao, recompensa)
+        resultado = ResultadoInteracao(nova_posicao, recompensa, finalizado, completado)
 
         return resultado
