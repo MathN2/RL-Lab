@@ -219,7 +219,8 @@ __marimo__/
 .streamlit/secrets.toml
 
 # Dados
-src/data/passos.txt
-src/data/qtable.txt
-src/data/resultados.xlsx
-src/data/execucoes.xlsx
+data/passos.txt
+data/qtable.txt
+data/resultados.xlsx
+data/execucoes.xlsx
+data/
