@@ -88,16 +88,14 @@ class Ambiente:
 
             recompensa = resultado.recompensa
             finalizado = resultado.finalizado
-            completado = resultado.completado
             
         else:
             posicao_atual = self.get_posicao_tupla()
             finalizado = False
-            completado = False
 
         estado_atual = (self.nome_ambiente, posicao_atual)
 
-        return estado_atual, recompensa, finalizado, completado
+        return estado_atual, recompensa, finalizado
 
 
     def criar_obstaculo(self, obstaculo:Obstaculo):

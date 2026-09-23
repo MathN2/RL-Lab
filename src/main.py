@@ -43,9 +43,9 @@ def treinar(alpha, gamma, epsilon):
     global num_chamada, num_ep, dados_avaliacoes
     num_chamada += 1
     num_ciclo = 0
-    num_ep = 0
-    num_total_completos = 0
-    num_completos = 0
+    num_ep = 1
+    num_total_eps_completos = 0
+    num_eps_completos = 0
 
     agente.set_alpha(alpha)
     agente.set_gamma(gamma)
@@ -71,15 +71,14 @@ def treinar(alpha, gamma, epsilon):
     eficiencia = 0
 
     while True:
-        estado = level1.reset()
         agente.reset()
-        # estado = agente.estado_atual
+        estado = agente.estado_atual
 
         # Looping EPISODIOS
-        passos, qtable, completo = executar_episodio(level1, agente, estado, True)
+        passos, qtable, ep_completo = executar_episodio(level1, agente, estado, True)
 
-        if completo:
-            num_completos += 1
+        if ep_completo:
+            num_eps_completos += 1
             eficiencia = (minimo_passos / agente.passos) * 100
         else:
             eficiencia = 0
@@ -94,7 +93,7 @@ def treinar(alpha, gamma, epsilon):
         
 
         # CICLO
-        if num_ep % janela_verificacao == 0:
+        if num_ep % janela_verificacao == 0 and num_ep != 0:
             num_ciclo += 1
 
             if num_ciclo != 0 and num_ciclo % 10 == 0:
@@ -118,15 +117,15 @@ def treinar(alpha, gamma, epsilon):
                 "menor": min(historico_atual),
                 "maior": max(historico_atual),
                 "eficiencia_media": sum(eficiencia_ciclo) / len(eficiencia_ciclo),
-                "percentual_completos": (num_completos / janela_verificacao) * 100
+                "percentual_completos": (num_eps_completos / janela_verificacao) * 100
             }
 
             dados_testes.append(info_treino)
             add_info_sheet(sheet, info_treino)
             
 
-            num_total_completos += num_completos
-            num_completos = 0
+            num_total_eps_completos += num_eps_completos
+            num_eps_completos = 0
 
         num_ep += 1
 
@@ -141,8 +140,8 @@ def treinar(alpha, gamma, epsilon):
         "epsilon": epsilon,
         "num_eps": num_ep,
         "num_ciclos": num_ciclo,
-        "completos": num_total_completos,
-        "taxa_completos": (num_total_completos / num_ep) * 100,
+        "completos": num_total_eps_completos,
+        "taxa_completos": (num_total_eps_completos / num_ep) * 100,
         "eficiencia_media": sum(historico_eficiencia) / len(historico_eficiencia),
         "historico_completo": sum(historico_completo) / len(historico_completo)
     }
@@ -158,23 +157,20 @@ def avaliar(minimo_passos):
     epsilon_pre_avaliar = agente.epsilon
     agente.set_epsilon(0)
     success = 0
-    num_completos = 0
+    num_eps_completos = 0
 
     historico_passos_avaliacao = []
     historico_eficiencia = []
 
     for x in range(100):
-        estado = level1.reset()
         agente.reset()
-        # estado = agente.estado_atual
+        estado = agente.estado_atual
 
         executar_episodio(level1, agente, estado, False)
-        # print(level1.posicao)
 
         if level1.is_finished():
-            print(level1.is_finished())
             eficiencia = (minimo_passos / agente.passos) * 100
-            num_completos += 1
+            num_eps_completos += 1
         else:
             eficiencia = 0
 
@@ -196,7 +192,7 @@ def avaliar(minimo_passos):
         "menor": min(historico_passos_avaliacao),
         "maior": max(historico_passos_avaliacao),
         "eficiencia_media": media,
-        "percentual_completos": (num_completos / 100) * 100
+        "percentual_completos": (num_eps_completos / 100) * 100
     }
     dados_avaliacoes.append(info_avaliar)
     # salvar_resultados(nome_file, planilha, sheet, info_treino)
@@ -210,6 +206,7 @@ def avaliar(minimo_passos):
 def executar_episodio(level1:Ambiente, agente:Agente, estado, treinar=False):  
     global acoes
     contador = 1
+    ep_completo = False
     limite = False
     passos = ""
     qtable = ""
@@ -219,7 +216,7 @@ def executar_episodio(level1:Ambiente, agente:Agente, estado, treinar=False):
             
         acao = agente.escolher_acao()
     
-        novo_estado, recompensa, finalizado, completado = level1.step(acao)
+        novo_estado, recompensa, finalizado = level1.step(acao)
         estado = novo_estado
         agente.estado_atual = novo_estado
 
@@ -234,10 +231,10 @@ def executar_episodio(level1:Ambiente, agente:Agente, estado, treinar=False):
         contador += 1
 
         if finalizado:
-            completado = False
             break
 
-    return passos, qtable, completado
+    if level1.is_finished(): ep_completo = True
+    return passos, qtable, ep_completo
 
 
     # salvar_resultados(nome_file, planilha, sheet, ciclo_id, media, mediana, menor, maior, eficiencia_media, percentual_completos)
