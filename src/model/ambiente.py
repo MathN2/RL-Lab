@@ -5,7 +5,7 @@ from collections import deque
 
 class Ambiente:
     def __init__(self, nome_ambiente, limite_inferior=(0, 0), limite_superior=(9,9)):
-        #Validação dos limites
+        # Validação da instanciação
         if (
             limite_superior[0] < limite_inferior[0]
             or limite_superior[1] < limite_inferior[1]
@@ -34,6 +34,7 @@ class Ambiente:
 
         self.obstaculos = []
 
+    # -- GETTERS & SETTERS ----------------------------------
     def get_nome(self): return self.nome_ambiente
 
     def get_posicao_inicial(self):
@@ -49,6 +50,8 @@ class Ambiente:
         self.posicao['x'] = posicao[0]
         self.posicao['y'] = posicao[1]
 
+
+    # -- METODOS DE CONTROLE DE POSIÇÃO -----------------------
     def reset(self):
         self.posicao = self.posicao_inicial.copy()
         coordenada = (self.posicao['x'], self.posicao['y'])
@@ -57,6 +60,8 @@ class Ambiente:
     def is_finished(self):
         return self.posicao == self.objetivo
 
+
+    # -- AÇÕES DO AMBIENTE ------------------------------------
     def step(self, acao):
         posicao_anterior = self.posicao.copy()
 
@@ -97,7 +102,7 @@ class Ambiente:
 
         return estado_atual, recompensa, finalizado
 
-
+    
     def criar_obstaculo(self, obstaculo:Obstaculo):
         x_min = min(ob[0] for ob in obstaculo.posicao)
         x_max = max(ob[0] for ob in obstaculo.posicao)
@@ -123,6 +128,7 @@ class Ambiente:
         return None
 
 
+    # -- REGRAS ------------------------------------------------------
     def bfs_calc(self):
         atual = (self.posicao_inicial['x'], self.posicao_inicial['y'])
         objetivo = (self.objetivo['x'], self.objetivo['y'])
@@ -159,7 +165,6 @@ class Ambiente:
                     dx = -1
                 else:
                     continue
-
 
                 vizinho = (atual[0] + dx, atual[1] + dy)
 
