@@ -1,6 +1,8 @@
 from openpyxl import Workbook, load_workbook
 from pathlib import Path
 
+from collections import deque
+
 BASE_DIR = Path(__file__).resolve().parent.parent
 DATA_DIR = BASE_DIR / "data"
 
@@ -30,14 +32,15 @@ def criar_sheet(planilha, sheet_name):
     return sheet
 
 
+def add_info_sheet(sheet, dados:deque):
+    for dado in dados:
+        sheet.append(list(dado.values()))
+
+
 def salvar_planilha(nome_file, planilha):
     path = DATA_DIR / "resultados"
     Path.mkdir(path, exist_ok=True)
     planilha.save(path / nome_file)
-
-
-def add_info_sheet(sheet, info:dict):
-    sheet.append(list(info.values()))
 
 
 def salvar_execucao(info_execucao:dict):

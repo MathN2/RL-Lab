@@ -43,7 +43,7 @@ def treinar(alpha, gamma, epsilon):
     global num_chamada, num_ep, dados_avaliacoes
     num_chamada += 1
     num_ciclo = 0
-    num_ep = 1
+    num_ep = 0
     num_total_eps_completos = 0
     num_eps_completos = 0
 
@@ -52,7 +52,8 @@ def treinar(alpha, gamma, epsilon):
     agente.set_epsilon(epsilon)
 
     planilha = criar_planilha()
-    sheet = criar_sheet(planilha, "Treino")
+    sheet_treino = criar_sheet(planilha, "Treino")
+    sheet_avaliacao = criar_sheet(planilha, "Avaliação")
     nome_file = f"resultados{num_chamada}.xlsx"
 
     minimo_passos = level1.bfs_calc()
@@ -121,7 +122,6 @@ def treinar(alpha, gamma, epsilon):
             }
 
             dados_testes.append(info_treino)
-            add_info_sheet(sheet, info_treino)
             
 
             num_total_eps_completos += num_eps_completos
@@ -130,7 +130,7 @@ def treinar(alpha, gamma, epsilon):
         num_ep += 1
 
         if len(historico_convergencia) >= 5:
-            if all(historico_convergencia[-5:]):
+            if all(historico_convergencia[-10:]):
                 break
 
     # CRIAR SALVAR TOTAL
@@ -140,53 +140,56 @@ def treinar(alpha, gamma, epsilon):
         "epsilon": epsilon,
         "num_eps": num_ep,
         "num_ciclos": num_ciclo,
-        "completos": num_total_eps_completos,
-        "taxa_completos": (num_total_eps_completos / num_ep) * 100,
+        "eps_completos": num_total_eps_completos,
+        "taxa_eps_completos": (num_total_eps_completos / num_ep) * 100,
         "eficiencia_media": sum(historico_eficiencia) / len(historico_eficiencia),
-        "historico_completo": sum(historico_completo) / len(historico_completo)
+        "passos_media": sum(historico_completo) / len(historico_completo)
     }
 
-    
+    add_info_sheet(sheet_treino, dados_testes)
+    add_info_sheet(sheet_avaliacao, dados_avaliacoes)
     salvar_planilha(nome_file, planilha)
+
     salvar_execucao(info_execucao)
     salvar_qtable(qtable_list)
     salvar_passos(historico_passos)
 
-
+number = 0
 def avaliar(minimo_passos):
+    global number
+    number += 1
     epsilon_pre_avaliar = agente.epsilon
     agente.set_epsilon(0)
     success = 0
     num_eps_completos = 0
 
     historico_passos_avaliacao = []
-    historico_eficiencia = []
+    historico_eficiencia_avaliacao = []
 
     for x in range(100):
         agente.reset()
         estado = agente.estado_atual
 
-        executar_episodio(level1, agente, estado, False)
+        passos, qtable, ep_completo = executar_episodio(agente.ambiente_atual, agente, estado, False)
 
-        if level1.is_finished():
-            eficiencia = (minimo_passos / agente.passos) * 100
+        if ep_completo:
             num_eps_completos += 1
+            eficiencia = (minimo_passos / agente.passos) * 100
         else:
             eficiencia = 0
 
         historico_passos_avaliacao.append(agente.passos)
-        historico_eficiencia.append(eficiencia)
+        historico_eficiencia_avaliacao.append(eficiencia)
 
-    for e in historico_eficiencia:
+    for e in historico_eficiencia_avaliacao:
         if e >= 95:
             success += 1
 
-    media = sum(historico_eficiencia) / len(historico_eficiencia)
+    media = sum(historico_eficiencia_avaliacao) / len(historico_eficiencia_avaliacao)
     agente.set_epsilon(epsilon_pre_avaliar)
 
-    # sheet = criar_sheet(planilha, "Avaliação")
     info_avaliar = {
-        "ciclo": "Avaliação",
+        "ciclo": number,
         "media": sum(historico_passos_avaliacao) / len(historico_passos_avaliacao),
         "mediana": median(historico_passos_avaliacao),
         "menor": min(historico_passos_avaliacao),
@@ -195,9 +198,8 @@ def avaliar(minimo_passos):
         "percentual_completos": (num_eps_completos / 100) * 100
     }
     dados_avaliacoes.append(info_avaliar)
-    # salvar_resultados(nome_file, planilha, sheet, info_treino)
 
-    if success >= (len(historico_eficiencia) * 0.9) and media > 95:
+    if success >= (len(historico_eficiencia_avaliacao) * 0.9) and media > 95:
         return True
     else:
         return False
@@ -222,7 +224,7 @@ def executar_episodio(level1:Ambiente, agente:Agente, estado, treinar=False):
 
         if treinar:
             agente.QUpdate(estado_anterior, acao, recompensa, novo_estado)
-        elif contador > 100:
+        elif contador > 1000:
             limite = True
 
         # Logs
@@ -237,9 +239,6 @@ def executar_episodio(level1:Ambiente, agente:Agente, estado, treinar=False):
     return passos, qtable, ep_completo
 
 
-    # salvar_resultados(nome_file, planilha, sheet, ciclo_id, media, mediana, menor, maior, eficiencia_media, percentual_completos)
-
-
 # Recomendações:
 # - epsilon: normalmente faz sentido iniciar mais alto e reduzir ao longo das execuções.
 # - alpha: pode ser incrementado ou reduzido dependendo do experimento.
@@ -247,8 +246,8 @@ def executar_episodio(level1:Ambiente, agente:Agente, estado, treinar=False):
 # - incrementos são percentuais e devem estar entre 0 e 1.
 
 conf = {
-    "resetar_Qtable": False,
-    "qtd_execucoes": 1,
+    "resetar_Qtable": True,
+    "qtd_execucoes": 10,
 
     "valores": {
         "alpha": {
@@ -258,15 +257,15 @@ conf = {
         },
     
         "gamma": {
-            "valor": 0.9,
+            "valor": 0.90,
             "incrementar_global": False,
-            "incremento": 0.01
+            "incremento": 0
         },
     
         "epsilon": {
-            "valor": 0.1,
-            "incrementar_global": True,
-            "incremento": 0
+            "valor": 0.5,
+            "incrementar_global": False,
+            "incremento": -0.20
         }
     },
     

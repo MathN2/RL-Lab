@@ -2,6 +2,10 @@ import random
 
 class Agente:
     def __init__(self, alpha=0.1, gamma=0.9, epsilon=0.1):
+        # Alpha: taxa de aprendizado; controla o quanto a nova experiência altera o valor Q.
+        # Gamma: fator de desconto; define o quanto recompensas futuras influenciam o aprendizado.
+        # Epsilon: taxa de exploração; define a frequência com que o agente escolhe ações aleatórias.
+        
         self.estado_atual = None
         self.ambiente_atual = None
         self.acoes_possiveis = []
